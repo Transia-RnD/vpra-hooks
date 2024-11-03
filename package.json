@@ -1,0 +1,38 @@
+{
+  "name": "@transia/vrpa-hooks",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "build:hooks": "hooks-toolkit-cli compile-c contracts build",
+    "test:integration": "jest --config=jest.config.integration.js --runInBand",
+    "lint": "eslint ./test/**/* --ext .ts",
+    "format": "npx prettier --write ./test"
+  },
+  "author": {
+    "name": "Denis Angell",
+    "url": "https://github.com/dangell7"
+  },
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "@transia/hooks-toolkit": "^2.0.0-alpha.4",
+    "@transia/hooks-toolkit-cli": "^1.0.5"
+  },
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.3",
+    "@types/chai": "^4.3.4",
+    "@types/crypto-js": "^4.1.1",
+    "@types/jest": "^29.5.0",
+    "@types/lodash": "^4.14.192",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/parser": "^5.54.1",
+    "chai": "^5.1.2",
+    "eslint": "^8.36.0",
+    "eslint-config-prettier": "^8.7.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^29.5.0",
+    "prettier": "^2.8.4",
+    "ts-jest": "^29.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
+  }
+}
