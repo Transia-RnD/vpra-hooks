@@ -1,59 +1,72 @@
 /**
- * 
+ *
  */
- 
+
 #include "hookapi.h"
 
-#define ACCOUNT_TO_BUF(buf_raw, i)\
-{\
-    unsigned char* buf = (unsigned char*)buf_raw;\
-    *(uint64_t*)(buf + 0) = *(uint64_t*)(i +  0);\
-    *(uint64_t*)(buf + 8) = *(uint64_t*)(i +  8);\
-    *(uint32_t*)(buf + 16) = *(uint32_t*)(i + 16);\
-}
+#define ACCOUNT_TO_BUF(buf_raw, i)                       \
+    {                                                    \
+        unsigned char *buf = (unsigned char *)buf_raw;   \
+        *(uint64_t *)(buf + 0) = *(uint64_t *)(i + 0);   \
+        *(uint64_t *)(buf + 8) = *(uint64_t *)(i + 8);   \
+        *(uint32_t *)(buf + 16) = *(uint32_t *)(i + 16); \
+    }
 
-#define UINT256_TO_BUF(buf_raw, i)\
-{\
-    unsigned char* buf = (unsigned char*)buf_raw;\
-    *(uint64_t*)(buf + 0) = *(uint64_t*)(i +  0);\
-    *(uint64_t*)(buf + 8) = *(uint64_t*)(i +  8);\
-    *(uint64_t*)(buf + 16) = *(uint64_t*)(i + 16);\
-    *(uint64_t*)(buf + 24) = *(uint64_t*)(i + 24);\
-}
+#define UINT112_TO_BUF(buf_raw, i)                       \
+    {                                                    \
+        unsigned char *buf = (unsigned char *)buf_raw;   \
+        *(uint64_t *)(buf + 0) = *(uint64_t *)(i + 0);   \
+        buf[8] = i[8];                                  \
+        buf[9] = i[9];                                  \
+        buf[10] = i[10];                                \
+        buf[11] = i[11];                                \
+        buf[12] = i[12];                                \
+        buf[13] = i[13];                                \
+    }
 
-#define UINT256_TO_HEXBUF(buf_raw, u256)                \
-{                                                    \
-    const char hex_chars[] = "0123456789ABCDEF";     \
-    unsigned char *buf = (unsigned char *)buf_raw;   \
-    for (int i = 0; GUARD(32), i < 32; ++i) {        \
-        buf[2 * i] = hex_chars[(u256[i] >> 4) & 0x0F];  \
-        buf[2 * i + 1] = hex_chars[u256[i] & 0x0F];     \
-    }                                                \
-    buf[2 * 32] = '\0';                              \
-}
+#define UINT256_TO_BUF(buf_raw, i)                       \
+    {                                                    \
+        unsigned char *buf = (unsigned char *)buf_raw;   \
+        *(uint64_t *)(buf + 0) = *(uint64_t *)(i + 0);   \
+        *(uint64_t *)(buf + 8) = *(uint64_t *)(i + 8);   \
+        *(uint64_t *)(buf + 16) = *(uint64_t *)(i + 16); \
+        *(uint64_t *)(buf + 24) = *(uint64_t *)(i + 24); \
+    }
 
-#define URI_TO_BUF(buf_raw, uri, len)\
-{\
-    unsigned char* buf = (unsigned char*)buf_raw;\
-    for (int i = 0; GUARD(32), i < 32; ++i) \
-        *(((uint64_t*)buf) + i) = *(((uint64_t*)uri) + i); \
-    buf[len + 2] += 0xE1U; \
-}
+#define UINT256_TO_HEXBUF(buf_raw, u256)                   \
+    {                                                      \
+        const char hex_chars[] = "0123456789ABCDEF";       \
+        unsigned char *buf = (unsigned char *)buf_raw;     \
+        for (int i = 0; GUARD(32), i < 32; ++i)            \
+        {                                                  \
+            buf[2 * i] = hex_chars[(u256[i] >> 4) & 0x0F]; \
+            buf[2 * i + 1] = hex_chars[u256[i] & 0x0F];    \
+        }                                                  \
+        buf[2 * 32] = '\0';                                \
+    }
 
-#define ENCODE_URI(vl, vl_len)\
-    {\
-        if (vl_len <= 193) \
-        {\
-            vl[0] = vl_len;\
-        }\
-        else if (vl_len <= 12480) \
-        {\
-            vl_len -= 193;\
-            int byte1 = (vl_len >> 8) + 193;\
-            int byte2 = vl_len & 0xFFU;\
-            vl[0] = byte1;\
-            vl[1] = byte2;\
-        }\
+#define URI_TO_BUF(buf_raw, uri, len)                            \
+    {                                                            \
+        unsigned char *buf = (unsigned char *)buf_raw;           \
+        for (int i = 0; GUARD(32), i < 32; ++i)                  \
+            *(((uint64_t *)buf) + i) = *(((uint64_t *)uri) + i); \
+        buf[len + 2] += 0xE1U;                                   \
+    }
+
+#define ENCODE_URI(vl, vl_len)               \
+    {                                        \
+        if (vl_len <= 193)                   \
+        {                                    \
+            vl[0] = vl_len;                  \
+        }                                    \
+        else if (vl_len <= 12480)            \
+        {                                    \
+            vl_len -= 193;                   \
+            int byte1 = (vl_len >> 8) + 193; \
+            int byte2 = vl_len & 0xFFU;      \
+            vl[0] = byte1;                   \
+            vl[1] = byte2;                   \
+        }                                    \
     }
 
 #define RAND_SEED(seed) ((seed) * 1103515245 + 12345)
@@ -144,7 +157,6 @@ uint8_t rtxn[60000] =
     ACCOUNT_TO_BUF(ROTX_ACC, dest_buffer); \ 
     etxn_details(REMIT_OUT, 116U); \ 
     URI_TO_BUF(RURI_OUT, uri_buffer, uri_len); \
-    TRACEHEX(rtxn); \
     int64_t fee = etxn_fee_base(rtxn, BYTES_LEN + uri_len + 2); \ 
     uint8_t *b = RFEE_OUT; \ 
     *b++ = 0b01000000 + ((fee >> 56) & 0b00111111); \ 
@@ -155,7 +167,7 @@ uint8_t rtxn[60000] =
     *b++ = (fee >> 16) & 0xFFU; \ 
     *b++ = (fee >> 8) & 0xFFU; \ 
     *b++ = (fee >> 0) & 0xFFU; \
-} while(0) 
+} while(0)
 // clang-format on
 
 #define FLIP_ENDIAN_64(n) ((uint64_t)(((n & 0xFFULL) << 56ULL) |             \
@@ -169,14 +181,14 @@ uint8_t rtxn[60000] =
 
 // BINARY MODEL
 #define MODEL_SIZE 100U
-#define ID_OFFSET 0U // field offset from 0
-#define NAME_OFFSET 8U // field offset from 0
-#define ATTRIB_OFFSET 22U // field offset from 0
+#define ID_OFFSET 0U         // field offset from 0
+#define NAME_OFFSET 8U       // field offset from 0
+#define ATTRIB_OFFSET 22U    // field offset from 0
 #define BREEDABLE_OFFSET 43U // field offset from 0
-#define PRICE_OFFSET 44U // field offset from 0
-#define TOKENID_OFFSET 52U // field offset from 0
-#define WINS_OFFSET 84U // field offset from 0
-#define TOTAL_OFFSET 92U // field offset from 0
+#define PRICE_OFFSET 44U     // field offset from 0
+#define TOKENID_OFFSET 52U   // field offset from 0
+#define WINS_OFFSET 84U      // field offset from 0
+#define TOTAL_OFFSET 92U     // field offset from 0
 
 // Male Hash: Owner
 // Female Hash: Marketplace
@@ -186,9 +198,8 @@ uint8_t rtxn[60000] =
 // Male Hash: Marketplace
 // Amount: $10
 
-int64_t hook(uint32_t reserved ) {
-
-    TRACESTR("pet_breed.c: Called.");
+int64_t hook(uint32_t reserved)
+{
 
     // ACCOUNT: Hook Account
     uint8_t hook_acct[32];
@@ -216,9 +227,9 @@ int64_t hook(uint32_t reserved ) {
         rollback(SBUF("pet_breed.c: Invalid Txn Parameter `PF`"), __LINE__);
     }
 
-    uint8_t hn_buff[32];
+    uint8_t hn_buff[14];
     uint8_t hn_key[2] = {'P', 'N'};
-    if (otxn_param(SBUF(hn_buff), SBUF(hn_key)) != 32)
+    if (otxn_param(SBUF(hn_buff), SBUF(hn_key)) != 14)
     {
         rollback(SBUF("pet_breed.c: Invalid Txn Parameter `PN`"), __LINE__);
     }
@@ -231,7 +242,7 @@ int64_t hook(uint32_t reserved ) {
         rollback(SBUF("pet_breed.c: Could not load `Male` sfOwner"), __LINE__);
     if (slot_subfield(1, sfDigest, 3) != 3)
         rollback(SBUF("pet_breed.c: Could not load `Male` sfDigest"), __LINE__);
-    
+
     uint8_t mp_owner[20];
     slot(SBUF(mp_owner), 2);
 
@@ -249,7 +260,7 @@ int64_t hook(uint32_t reserved ) {
         rollback(SBUF("pet_breed.c: Could not load `Female` sfOwner"), __LINE__);
     if (slot_subfield(4, sfDigest, 6) != 6)
         rollback(SBUF("pet_breed.c: Could not load `Female` sfDigest"), __LINE__);
-    
+
     uint8_t fp_owner[20];
     slot(SBUF(fp_owner), 5);
 
@@ -264,12 +275,17 @@ int64_t hook(uint32_t reserved ) {
     int64_t is_m_owner = BUFFER_EQUAL_20(otxn_accid + 12, mp_owner);
     if (!is_f_owner && !is_m_owner)
     {
-        rollback(SBUF("pet_breed.c: Invalid Horse Owner `Account`"), __LINE__);
+        rollback(SBUF("pet_breed.c: Invalid Pet Owner `Account`"), __LINE__);
+    }
+
+    if (BUFFER_EQUAL_20(mp_owner, fp_owner))
+    {
+        rollback(SBUF("pet_breed.c: You cannot breed your own pets"), __LINE__);
     }
 
     // VALIDATE MALE & FEMALE
     uint8_t field_value[8];
-    int64_t otxn_field_size = otxn_field(field_value, 8,  sfAmount);
+    int64_t otxn_field_size = otxn_field(field_value, 8, sfAmount);
     int64_t payment_drops = AMOUNT_TO_DROPS(field_value);
     int64_t pet_xfl = FLIP_ENDIAN_64(UINT64_FROM_BUF(is_f_owner ? mh_model + PRICE_OFFSET : fh_model + PRICE_OFFSET));
     if (float_int(pet_xfl, 6, 1) != payment_drops)
@@ -307,17 +323,21 @@ int64_t hook(uint32_t reserved ) {
     uint8_t fh_lifespan = fh_model[ATTRIB_OFFSET + 11];
 
     uint8_t combined_data[32 + 32 + sizeof(int64_t)];
-    for (int i = 0; GUARD(32), i < 32; ++i) {
+    for (int i = 0; GUARD(32), i < 32; ++i)
+    {
         combined_data[i] = mh_hash[i];
     }
-    for (int i = 0; GUARD(32), i < 32; ++i) {
+    for (int i = 0; GUARD(32), i < 32; ++i)
+    {
         combined_data[32 + i] = fh_hash[i];
     }
-    for (int i = 0; GUARD(32), i < 20; ++i) {
+    for (int i = 0; GUARD(32), i < 20; ++i)
+    {
         combined_data[64 + i] = otxn_accid[12 + i];
     }
-    for (int i = 0; GUARD(32), i < sizeof(int64_t); ++i) {
-        combined_data[84 + i] = ((uint8_t*)&seq)[i];
+    for (int i = 0; GUARD(32), i < sizeof(int64_t); ++i)
+    {
+        combined_data[84 + i] = ((uint8_t *)&seq)[i];
     }
 
     uint8_t combined_hash[32];
@@ -330,7 +350,7 @@ int64_t hook(uint32_t reserved ) {
     // id
     INT64_TO_BUF(pet_model + ID_OFFSET, count)
     // name
-    UINT256_TO_BUF(pet_model + NAME_OFFSET, hn_buff);
+    UINT112_TO_BUF(pet_model + NAME_OFFSET, hn_buff);
     // gender
     pet_model[ATTRIB_OFFSET + 0] = combined_hash[15] < 0x80 ? mh_gender : fh_gender;
     // age
@@ -375,23 +395,27 @@ int64_t hook(uint32_t reserved ) {
     char _ns[] = "&namespace=";
     char _key[] = "&key=";
 
-    for (int i = 0; GUARD(41), i < 41; ++i) {
+    for (int i = 0; GUARD(41), i < 41; ++i)
+    {
         uri_buffer[i + 2] = url[i];
     }
-    for (int i = 0; GUARD(34), i < 34; ++i) {
+    for (int i = 0; GUARD(34), i < 34; ++i)
+    {
         uri_buffer[i + 41 + 2] = address[i];
     }
-    for (int i = 0; GUARD(11), i < 11; ++i) {
+    for (int i = 0; GUARD(11), i < 11; ++i)
+    {
         uri_buffer[i + 75 + 2] = _ns[i];
     }
-    
+
     uint8_t ns[32] = {
-        0x3B, 0xE1, 0xD4, 0x22, 0xA4, 0x60, 0x85, 0xE1, 
-        0x7F, 0x4A, 0x19, 0xD3, 0xED, 0x70, 0x7C, 0x86, 
+        0x3B, 0xE1, 0xD4, 0x22, 0xA4, 0x60, 0x85, 0xE1,
+        0x7F, 0x4A, 0x19, 0xD3, 0xED, 0x70, 0x7C, 0x86,
         0x69, 0x27, 0xA6, 0xD3, 0x54, 0xA5, 0x62, 0xC4,
         0x5A, 0x78, 0xF1, 0xF0, 0x3D, 0x7C, 0x41, 0x18};
     UINT256_TO_HEXBUF(uri_buffer + 86 + 2, ns);
-    for (int i = 0; GUARD(5), i < 5; ++i) {
+    for (int i = 0; GUARD(5), i < 5; ++i)
+    {
         uri_buffer[i + 150 + 2] = _key[i];
     }
     UINT256_TO_HEXBUF(uri_buffer + 155 + 2, hash_out);
@@ -401,7 +425,8 @@ int64_t hook(uint32_t reserved ) {
     tokenid_buffer[0] = 0x00U;
     tokenid_buffer[1] = 0x55U;
     ACCOUNT_TO_BUF(tokenid_buffer + 2, hook_acct + 12);
-    for (int i = 0; GUARD(URI_LEN), i < URI_LEN; ++i) {
+    for (int i = 0; GUARD(URI_LEN), i < URI_LEN; ++i)
+    {
         tokenid_buffer[i + 2 + 20] = uri_buffer[i + 2];
     }
     uint8_t tokenid_out[32];
@@ -475,8 +500,6 @@ int64_t hook(uint32_t reserved ) {
         *b++ = (fee >> 0) & 0xFFU;
     }
 
-    TRACEHEX(txn); // <- final tx blob
-
     // TXN: Emit/Send Txn
     uint8_t emithash[32];
     int64_t emit_result = emit(SBUF(emithash), SBUF(txn));
@@ -490,8 +513,8 @@ int64_t hook(uint32_t reserved ) {
     count++;
     state_set(&count, 8, hook_acct + 12, 20);
 
-    accept(SBUF("pet_breed.c: Tx emitted failure."), __LINE__);
+    accept(SBUF("pet_breed.c: Emit Success."), __LINE__);
 
-    _g(1,1);
+    _g(1, 1);
     return 0;
 }

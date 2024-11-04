@@ -22,14 +22,44 @@ import {
   iHookParamEntry,
   iHookParamName,
   iHookParamValue,
+  floatToLEXfl,
+  StateUtility,
+  hexNamespace,
 } from '@transia/hooks-toolkit'
-import { varStringToHex } from '@transia/hooks-toolkit/dist/npm/src/libs/binary-models'
+import {
+  decodeModel,
+  varStringToHex,
+} from '@transia/hooks-toolkit/dist/npm/src/libs/binary-models'
+import { PetModel } from './models/PetModel'
+
+export async function getPet(
+  client: Client,
+  account: string,
+  petHash: string
+): Promise<PetModel | null> {
+  try {
+    const result = await StateUtility.getHookState(
+      client,
+      account,
+      petHash,
+      hexNamespace(`pets`)
+    )
+    const battle = decodeModel(result.HookStateData, PetModel)
+    console.log(battle)
+    return battle
+  } catch (e) {
+    console.log(e)
+    return null
+  }
+}
 
 export async function mintPet(
   testContext: XrplIntegrationTestContext,
   fromWallet: Wallet,
+  amount: number,
   name: string,
-  destination: string
+  destination: string,
+  executionResult: string
 ) {
   const otxn1param1 = new iHookParamEntry(
     new iHookParamName('HPA'),
@@ -37,13 +67,13 @@ export async function mintPet(
   )
   const otxn1param2 = new iHookParamEntry(
     new iHookParamName('PN'),
-    new iHookParamValue(varStringToHex(name, 31), true)
+    new iHookParamValue(varStringToHex(name, 13), true)
   )
   const builtTx: Payment = {
     TransactionType: 'Payment',
     Account: fromWallet.classicAddress,
     Destination: destination,
-    Amount: xrpToDrops(10),
+    Amount: xrpToDrops(amount),
     HookParameters: [otxn1param1.toXrpl(), otxn1param2.toXrpl()],
   }
   const result = await Xrpld.submit(testContext.client, {
@@ -56,9 +86,7 @@ export async function mintPet(
     result.meta as TransactionMetadata
   )
   await close(testContext.client)
-  expect(hookExecutions.executions[1].HookReturnString).toEqual(
-    'pet_mint.c: Finished.'
-  )
+  expect(hookExecutions.executions[1].HookReturnString).toEqual(executionResult)
 
   const PXP = IC.gw('PXP', testContext.hook1.classicAddress)
   await trust(testContext.client, PXP.set(100000), ...[fromWallet])
@@ -69,7 +97,8 @@ export async function updatePet(
   hash: string,
   wallet: Wallet,
   dest: string,
-  xfl: string
+  breedPrice?: string,
+  name?: string
 ) {
   const otxnparam1 = new iHookParamEntry(
     new iHookParamName('HPA'),
@@ -79,24 +108,25 @@ export async function updatePet(
     new iHookParamName('P'),
     new iHookParamValue(hash, true)
   )
-  const otxnparam3 = new iHookParamEntry(
-    new iHookParamName('BP'),
-    new iHookParamValue(xfl, true)
-  )
-  // const otxnparam4 = new iHookParamEntry(
-  //   new iHookParamName('PN'),
-  //   new iHookParamValue(varStringToHex('A Sons Love', 31), true)
-  // )
   const builtTx3: Invoke = {
     TransactionType: 'Invoke',
     Account: wallet.classicAddress,
     Destination: dest,
-    HookParameters: [
-      otxnparam1.toXrpl(),
-      otxnparam2.toXrpl(),
-      otxnparam3.toXrpl(),
-      // otxnparam4.toXrpl(),
-    ],
+    HookParameters: [otxnparam1.toXrpl(), otxnparam2.toXrpl()],
+  }
+  if (breedPrice) {
+    const otxnparam = new iHookParamEntry(
+      new iHookParamName('BP'),
+      new iHookParamValue(floatToLEXfl(breedPrice), true)
+    )
+    builtTx3.HookParameters.push(otxnparam.toXrpl())
+  }
+  if (name) {
+    const otxnparam = new iHookParamEntry(
+      new iHookParamName('PN'),
+      new iHookParamValue(varStringToHex(name, 13), true)
+    )
+    builtTx3.HookParameters.push(otxnparam.toXrpl())
   }
 
   await Xrpld.submit(client, {
@@ -127,7 +157,7 @@ export async function breedPet(
   )
   const otxnparam4 = new iHookParamEntry(
     new iHookParamName('PN'),
-    new iHookParamValue(varStringToHex('A Sons Love', 31), true)
+    new iHookParamValue(varStringToHex('A Sons Love', 13), true)
   )
   const builtTx4: Payment = {
     TransactionType: 'Payment',

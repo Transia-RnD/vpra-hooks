@@ -138,6 +138,8 @@ uint8_t admin_buffer[20] = {
 //     0x11U, 0xD3U, 0xEAU, 0x55U, 0xA0U, 0x5BU, 0xBAU, 0x07U, 0x7FU, 0x4DU
 // };
 
+#define ttSET_HOOK 22U
+
 int64_t hook(uint32_t reserved)
 {
     _g(1, 1);

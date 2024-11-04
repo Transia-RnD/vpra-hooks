@@ -5,7 +5,6 @@ import {
   XrplIntegrationTestContext,
   setupClient,
   teardownClient,
-  close,
 } from '@transia/hooks-toolkit/dist/npm/src/libs/xrpl-helpers'
 // src
 import {
@@ -18,7 +17,9 @@ import {
   iHookParamValue,
   floatToLEXfl,
 } from '@transia/hooks-toolkit'
-import { breedPet, buyPet, mintPet, sellPet, updatePet } from './utils'
+import { getPet, updatePet } from './utils'
+// import { getPet, mintPet, updatePet } from './utils'
+import { URIToken } from '@transia/xrpl/dist/npm/models/ledger'
 
 describe('Pets - Success Group', () => {
   let testContext: XrplIntegrationTestContext
@@ -81,38 +82,9 @@ describe('Pets - Success Group', () => {
   })
   afterAll(async () => teardownClient(testContext))
 
-  it('pets', async () => {
+  it('update pet', async () => {
     const hookWallet = testContext.hook1
     const aliceWallet = testContext.alice
-    const bobWallet = testContext.bob
-
-    try {
-      await mintPet(
-        testContext,
-        aliceWallet,
-        99,
-        'Damascus',
-        hookWallet.classicAddress,
-        ''
-      )
-    } catch (error: any) {
-      console.log(error)
-      expect(JSON.parse(error.message)[1].HookReturnString).toEqual(
-        'pet_mint.c: Insufficient Payment `Amount`'
-      )
-    }
-    try {
-      await mintPet(
-        testContext,
-        aliceWallet,
-        100,
-        'My Name Is Long',
-        hookWallet.classicAddress,
-        ''
-      )
-    } catch (error: any) {
-      expect(error.message).toEqual('String length 15 exceeds max length of 13')
-    }
 
     await mintPet(
       testContext,
@@ -122,110 +94,85 @@ describe('Pets - Success Group', () => {
       hookWallet.classicAddress,
       'pet_mint.c: Finished.'
     )
-    await mintPet(
-      testContext,
-      bobWallet,
-      100,
-      'Lawyer Ron',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      testContext.carol,
-      100,
-      'Serenas Song',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      testContext.dave,
-      100,
-      'Lava Man',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      testContext.elsa,
-      100,
-      'Exterminator',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      testContext.frank,
-      100,
-      'Arrogate',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
 
-    try {
-      await mintPet(
-        testContext,
-        testContext.frank,
-        100,
-        'Arrogate 2x',
-        hookWallet.classicAddress,
-        'pet_mint.c: Finished.'
-      )
-    } catch (error) {
-      console.log(error)
-    }
-
-    const ALICE_ID: string = (
+    const ALICE_URITOKEN: URIToken = (
       (await testContext.client.request({
         command: 'account_objects',
         account: testContext.alice.classicAddress,
         type: 'uri_token',
       })) as AccountObjectsResponse
-    ).result.account_objects[0].index
+    ).result.account_objects[0] as URIToken
 
-    const maleHash = ALICE_ID
+    const maleID = ALICE_URITOKEN.index
+    const maleHash = ALICE_URITOKEN.Digest
 
-    const BOB_ID: string = (
-      (await testContext.client.request({
-        command: 'account_objects',
-        account: testContext.bob.classicAddress,
-        type: 'uri_token',
-      })) as AccountObjectsResponse
-    ).result.account_objects[0].index
-    const femaleHash = BOB_ID
+    {
+      const pet = await getPet(
+        testContext.client,
+        hookWallet.classicAddress,
+        maleHash
+      )
+      expect(pet.isBreedable).toBe(0)
+      expect(pet.breedPrice).toBe(0)
+    }
 
-    // UPDATE MALE PET
+    // SET PET BREEDABLE
     await updatePet(
       testContext.client,
-      maleHash,
+      maleID,
       aliceWallet,
       hookWallet.classicAddress,
-      floatToLEXfl('10')
+      String(10)
     )
 
-    // UPDATE FEMALE PET
+    {
+      const pet = await getPet(
+        testContext.client,
+        hookWallet.classicAddress,
+        maleHash
+      )
+      expect(pet.isBreedable).toBe(1)
+      expect(pet.breedPrice).toBe(10)
+    }
+
+    // SET PET NOT BREEDABLE
     await updatePet(
       testContext.client,
-      femaleHash,
-      bobWallet,
+      maleID,
+      aliceWallet,
       hookWallet.classicAddress,
-      floatToLEXfl('10')
+      String(0)
     )
 
-    // BREED FEMALE PET
-    await breedPet(
+    {
+      const pet = await getPet(
+        testContext.client,
+        hookWallet.classicAddress,
+        maleHash
+      )
+      expect(pet.isBreedable).toBe(0)
+      expect(pet.breedPrice).toBe(0)
+    }
+
+    // SET PET NAME
+    await updatePet(
       testContext.client,
-      bobWallet,
+      maleID,
+      aliceWallet,
       hookWallet.classicAddress,
-      maleHash,
-      femaleHash,
-      '10'
+      String(10),
+      'Fido'
     )
-    await close(testContext.client)
 
-    // BUY / SELL
-    await sellPet(testContext.client, aliceWallet, maleHash, '1')
-    await buyPet(testContext.client, bobWallet, maleHash, '1')
+    {
+      const pet = await getPet(
+        testContext.client,
+        hookWallet.classicAddress,
+        maleHash
+      )
+      expect(pet.isBreedable).toBe(1)
+      expect(pet.breedPrice).toBe(10)
+      expect(pet.name).toBe('Fido')
+    }
   })
 })
