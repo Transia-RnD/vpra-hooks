@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
+    "build": "hooks-toolkit-cli compile-c contracts build",
     "deploy": "ts-node src/deploy.ts",
-    "build:hooks": "hooks-toolkit-cli compile-c contracts build",
     "test:integration": "jest --config=jest.config.integration.js --runInBand",
     "lint": "eslint ./test/**/* --ext .ts",
     "format": "npx prettier --write ./test"

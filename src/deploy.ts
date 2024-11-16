@@ -15,6 +15,7 @@ import {
 } from '@transia/hooks-toolkit'
 import * as dotenv from 'dotenv'
 import path from 'path'
+import fs from 'fs'
 dotenv.config({ path: path.resolve(__dirname, '..', '.env.private') })
 
 export async function set(): Promise<void> {
@@ -56,14 +57,22 @@ export async function set(): Promise<void> {
     flags: SetHookFlags.hsfOverride,
     hookOnArray: ['Payment'],
   } as SetHookPayload)
-  console.log(
-    JSON.stringify([
-      { Hook: hook1 },
-      { Hook: hook2 },
-      { Hook: hook3 },
-      { Hook: hook4 },
-    ])
-  )
+  // console.log(
+  //   JSON.stringify([
+  //     { Hook: hook1 },
+  //     { Hook: hook2 },
+  //     { Hook: hook3 },
+  //     { Hook: hook4 },
+  //   ])
+  // )
+
+  // write to json file
+  const builtTxn = {
+    TransactionType: 'SetHook',
+    Hooks: [{ Hook: hook1 }, { Hook: hook2 }, { Hook: hook3 }, { Hook: hook4 }],
+    NetworkID: 21337,
+  }
+  fs.writeFileSync('deploy.json', JSON.stringify(builtTxn, null, 2))
 
   //   const hookWallet = Wallet.fromSeed(process.env.ISSUER_SEED || '')
   //   console.log(hookWallet)

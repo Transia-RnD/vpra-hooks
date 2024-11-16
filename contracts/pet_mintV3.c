@@ -158,7 +158,7 @@ uint8_t txn[60000] =
 // clang-format on
 
 #define RAND_SEED(seed) ((seed) * 1103515245 + 12345)
-#define RAND(seed) (((RAND_SEED(seed)) / 65536) % 32768)
+#define RANDOM() (((RAND_SEED(seed)) / 65536) % 32768)
 
 uint8_t gender_options[2] = {0x00, 0x01};
 uint8_t breed_options[4] = {0x00, 0x01, 0x02, 0x03};
@@ -235,20 +235,11 @@ int64_t hook(uint32_t reserved)
         }
     }
 
-    uint8_t seed_data[20 + 8 + 8];
-#define ACCT_OUT (seed_data + 0U)
-    seed_data[20] = seq;
-    seed_data[28] = ts;
-    ACCOUNT_TO_BUF(ACCT_OUT, otxn_accid);
+    uint64_t rand_hash[32];
+    ledger_nonce(rand_hash, 32);
+    int hash_index = 0;
 
-    uint8_t hash[32];
-    util_sha512h(SBUF(hash), SBUF(seed_data));
-
-    unsigned int seed = 0;
-    for (int i = 0; GUARD(32), i < sizeof(seed); ++i)
-    {
-        seed |= (unsigned int)hash[i] << (i * 8);
-    }
+    #define RANDOM() (rand_hash[hash_index++])
 
     uint8_t hn_buff[14];
     uint8_t hm_key[2] = {'P', 'N'};
@@ -261,47 +252,36 @@ int64_t hook(uint32_t reserved)
     state(&count, 8, hook_acct + 12, 20);
 
     uint8_t pet_model[MODEL_SIZE];
-
     // id
     INT64_TO_BUF(pet_model + ID_OFFSET, count)
     // name
     UINT112_TO_BUF(pet_model + NAME_OFFSET, hn_buff);
     // gender
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 0] = gender_options[RAND(seed) % 2];
+    pet_model[ATTRIB_OFFSET + 0] = gender_options[RANDOM() % 2];
     // age
     pet_model[ATTRIB_OFFSET + 1] = 0x00;
     // breed
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 2] = breed_options[RAND(seed) % 4];
+    pet_model[ATTRIB_OFFSET + 2] = breed_options[RANDOM() % 4];
     // size
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 3] = base_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 3] = base_options[RANDOM() % 10];
     // body
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 4] = base_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 4] = base_options[RANDOM() % 10];
     // hooves
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 5] = base_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 5] = base_options[RANDOM() % 10];
     // speed
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 6] = speed_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 6] = speed_options[RANDOM() % 10];
     // stamina
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 7] = base_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 7] = base_options[RANDOM() % 10];
     // temperament
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 8] = base_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 8] = base_options[RANDOM() % 10];
     // training
-    pet_model[ATTRIB_OFFSET + 9] = base_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 9] = base_options[RANDOM() % 10];
     // health
-    pet_model[ATTRIB_OFFSET + 10] = base_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 10] = base_options[RANDOM() % 10];
     // lifespan
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 11] = lifespan_options[RAND(seed) % 10];
+    pet_model[ATTRIB_OFFSET + 11] = lifespan_options[RANDOM() % 10];
     // affinity
-    seed = RAND_SEED(seed);
-    pet_model[ATTRIB_OFFSET + 12] = RAND(seed) % 100;
+    pet_model[ATTRIB_OFFSET + 12] = RANDOM() % 100;
     // morale
     pet_model[ATTRIB_OFFSET + 13] = 0x00;
     // is breedable

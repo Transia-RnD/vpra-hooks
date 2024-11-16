@@ -322,27 +322,6 @@ int64_t hook(uint32_t reserved)
     uint8_t mh_lifespan = mh_model[ATTRIB_OFFSET + 11];
     uint8_t fh_lifespan = fh_model[ATTRIB_OFFSET + 11];
 
-    uint8_t combined_data[32 + 32 + sizeof(int64_t)];
-    for (int i = 0; GUARD(32), i < 32; ++i)
-    {
-        combined_data[i] = mh_hash[i];
-    }
-    for (int i = 0; GUARD(32), i < 32; ++i)
-    {
-        combined_data[32 + i] = fh_hash[i];
-    }
-    for (int i = 0; GUARD(32), i < 20; ++i)
-    {
-        combined_data[64 + i] = otxn_accid[12 + i];
-    }
-    for (int i = 0; GUARD(32), i < sizeof(int64_t); ++i)
-    {
-        combined_data[84 + i] = ((uint8_t *)&seq)[i];
-    }
-
-    uint8_t combined_hash[32];
-    util_sha512h(combined_hash, 32, SBUF(combined_data));
-
     int64_t count;
     state(&count, 8, hook_acct + 12, 20);
 
@@ -352,29 +331,38 @@ int64_t hook(uint32_t reserved)
     // name
     UINT112_TO_BUF(pet_model + NAME_OFFSET, hn_buff);
     // gender
-    pet_model[ATTRIB_OFFSET + 0] = combined_hash[15] < 0x80 ? mh_gender : fh_gender;
+    pet_model[ATTRIB_OFFSET + 0] = RAND(seed) % 5 <= 3 ? mh_gender : fh_gender;
+    seed ^= ts;
     // age
     pet_model[ATTRIB_OFFSET + 1] = 0x00;
     // breed
-    pet_model[ATTRIB_OFFSET + 2] = combined_hash[24] < 0x80 ? mh_breed : fh_breed;
+    pet_model[ATTRIB_OFFSET + 2] = RAND(seed) % 5 <= 3 ? mh_breed : fh_breed;
+    seed ^= ts;
     // size
     pet_model[ATTRIB_OFFSET + 3] = (mh_size + fh_size) / 2;
     // body
-    pet_model[ATTRIB_OFFSET + 4] = combined_hash[25] < 0x80 ? mh_body : fh_body;
+    pet_model[ATTRIB_OFFSET + 4] = RAND(seed) % 5 <= 3 ? mh_body : fh_body;
+    seed ^= ts;
     // hooves
-    pet_model[ATTRIB_OFFSET + 5] = combined_hash[16] < 0x80 ? mh_hooves : fh_hooves;
+    pet_model[ATTRIB_OFFSET + 5] = RAND(seed) % 5 <= 3 ? mh_hooves : fh_hooves;
+    seed ^= ts;
     // speed
-    pet_model[ATTRIB_OFFSET + 6] = combined_hash[17] < 0x80 ? mh_speed : fh_speed;
+    pet_model[ATTRIB_OFFSET + 6] = RAND(seed) % 5 <= 3 ? mh_speed : fh_speed;
+    seed ^= ts;
     // stamina
-    pet_model[ATTRIB_OFFSET + 7] = combined_hash[18] < 0x80 ? mh_stamina : fh_stamina;
+    pet_model[ATTRIB_OFFSET + 7] = RAND(seed) % 5 <= 3 ? mh_stamina : fh_stamina;
+    seed ^= ts;
     // temperament
-    pet_model[ATTRIB_OFFSET + 8] = combined_hash[19] < 0x80 ? mh_temperament : fh_temperament;
+    pet_model[ATTRIB_OFFSET + 8] = RAND(seed) % 5 <= 3 ? mh_temperament : fh_temperament;
+    seed ^= ts;
     // training
-    pet_model[ATTRIB_OFFSET + 9] = combined_hash[20] < 0x80 ? mh_training : fh_training;
+    pet_model[ATTRIB_OFFSET + 9] = RAND(seed) % 5 <= 3 ? mh_training : fh_training;
+    seed ^= ts;
     // health
-    pet_model[ATTRIB_OFFSET + 10] = combined_hash[21] < 0x80 ? mh_health : fh_health;
+    pet_model[ATTRIB_OFFSET + 10] = RAND(seed) % 5 <= 3 ? mh_health : fh_health;
+    seed ^= ts;
     // lifespan
-    pet_model[ATTRIB_OFFSET + 11] = combined_hash[22] < 0x80 ? mh_lifespan : fh_lifespan;
+    pet_model[ATTRIB_OFFSET + 11] = RAND(seed) % 5 <= 3 ? mh_lifespan : fh_lifespan;
     // affinity
     pet_model[ATTRIB_OFFSET + 12] = RAND(seed) % 100;
     // morale
@@ -385,7 +373,7 @@ int64_t hook(uint32_t reserved)
     pet_model[PRICE_OFFSET] = 0x00;
 
     // build uri
-    otxn_accid[0] = count;
+    INT64_TO_BUF(otxn_accid, count);
     uint8_t hash_out[32];
     util_sha512h(hash_out, 32, SBUF(otxn_accid));
 
