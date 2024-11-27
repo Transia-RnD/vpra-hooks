@@ -44,9 +44,7 @@ export async function getPet(
       petHash,
       hexNamespace(`pets`)
     )
-    const battle = decodeModel(result.HookStateData, PetModel)
-    console.log(battle)
-    return battle
+    return decodeModel(result.HookStateData, PetModel)
   } catch (e) {
     console.log(e)
     return null
@@ -171,10 +169,18 @@ export async function breedPet(
       otxnparam4.toXrpl(),
     ],
   }
-  await Xrpld.submit(client, {
+  const response = await Xrpld.submit(client, {
     wallet: wallet,
     tx: builtTx4,
   })
+  await close(client)
+  // @ts-expect-error -- EmitNonce is not in the type
+  const hookState = response.meta.AffectedNodes.find(
+    (node: any) => node?.CreatedNode?.LedgerEntryType === 'HookState'
+  )
+  console.log(
+    decodeModel(hookState.CreatedNode.NewFields.HookStateData, PetModel)
+  )
 }
 
 export async function sellPet(

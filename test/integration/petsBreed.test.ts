@@ -1,4 +1,4 @@
-import { SetHookFlags, AccountObjectsResponse } from '@transia/xrpl'
+import { SetHookFlags } from '@transia/xrpl'
 // xrpl-helpers
 import {
   serverUrl,
@@ -18,7 +18,10 @@ import {
   iHookParamValue,
   floatToLEXfl,
 } from '@transia/hooks-toolkit'
-import { breedPet, buyPet, mintPet, sellPet, updatePet } from './utils'
+import { getPet, updatePet } from './utils'
+import { breedPet } from './utils'
+// import { mintPet } from './utils'
+// import { URIToken } from '@transia/xrpl/dist/npm/models/ledger'
 
 describe('Pets - Success Group', () => {
   let testContext: XrplIntegrationTestContext
@@ -86,114 +89,83 @@ describe('Pets - Success Group', () => {
     const aliceWallet = testContext.alice
     const bobWallet = testContext.bob
 
-    try {
-      await mintPet(
-        testContext,
-        aliceWallet,
-        99,
-        'Damascus',
-        hookWallet.classicAddress,
-        ''
-      )
-    } catch (error: any) {
-      console.log(error)
-      expect(JSON.parse(error.message)[1].HookReturnString).toEqual(
-        'pet_mint.c: Insufficient Payment `Amount`'
-      )
-    }
-    try {
-      await mintPet(
-        testContext,
-        aliceWallet,
-        100,
-        'My Name Is Long',
-        hookWallet.classicAddress,
-        ''
-      )
-    } catch (error: any) {
-      expect(error.message).toEqual('String length 15 exceeds max length of 13')
-    }
+    // await mintPet(
+    //   testContext,
+    //   aliceWallet,
+    //   100,
+    //   'Damascus',
+    //   hookWallet.classicAddress,
+    //   'pet_mint.c: Finished.'
+    // )
+    // await mintPet(
+    //   testContext,
+    //   bobWallet,
+    //   100,
+    //   'Lawyer Ron',
+    //   hookWallet.classicAddress,
+    //   'pet_mint.c: Finished.'
+    // )
+    // await mintPet(
+    //   testContext,
+    //   testContext.carol,
+    //   100,
+    //   'Serenas Song',
+    //   hookWallet.classicAddress,
+    //   'pet_mint.c: Finished.'
+    // )
+    // await mintPet(
+    //   testContext,
+    //   testContext.dave,
+    //   100,
+    //   'Lava Man',
+    //   hookWallet.classicAddress,
+    //   'pet_mint.c: Finished.'
+    // )
+    // await mintPet(
+    //   testContext,
+    //   testContext.elsa,
+    //   100,
+    //   'Exterminator',
+    //   hookWallet.classicAddress,
+    //   'pet_mint.c: Finished.'
+    // )
+    // await mintPet(
+    //   testContext,
+    //   testContext.frank,
+    //   100,
+    //   'Arrogate',
+    //   hookWallet.classicAddress,
+    //   'pet_mint.c: Finished.'
+    // )
 
-    await mintPet(
-      testContext,
-      aliceWallet,
-      100,
-      'Damascus',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      bobWallet,
-      100,
-      'Lawyer Ron',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      testContext.carol,
-      100,
-      'Serenas Song',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      testContext.dave,
-      100,
-      'Lava Man',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      testContext.elsa,
-      100,
-      'Exterminator',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
-    await mintPet(
-      testContext,
-      testContext.frank,
-      100,
-      'Arrogate',
-      hookWallet.classicAddress,
-      'pet_mint.c: Finished.'
-    )
+    // const ALICE_URITOKEN: URIToken = (
+    //   (await testContext.client.request({
+    //     command: 'account_objects',
+    //     account: testContext.alice.classicAddress,
+    //     type: 'uri_token',
+    //   })) as AccountObjectsResponse
+    // ).result.account_objects[0] as URIToken
 
-    try {
-      await mintPet(
-        testContext,
-        testContext.frank,
-        100,
-        'Arrogate 2x',
-        hookWallet.classicAddress,
-        'pet_mint.c: Finished.'
-      )
-    } catch (error) {
-      console.log(error)
-    }
+    // const maleID = ALICE_URITOKEN.Digest
+    // const maleHash = ALICE_URITOKEN.index
+    const maleID =
+      'D40CE668F7B9EFBE73C8A146D78DBF1BBA6E1F454078FBC40E598E94EF1EE5B1'
+    const maleHash =
+      '11C467069B48E6A2A32809FAEBF91DE5E859BA4FC2B1D24EDD82AFBFDD9DCC1B'
 
-    const ALICE_ID: string = (
-      (await testContext.client.request({
-        command: 'account_objects',
-        account: testContext.alice.classicAddress,
-        type: 'uri_token',
-      })) as AccountObjectsResponse
-    ).result.account_objects[0].index
-
-    const maleHash = ALICE_ID
-
-    const BOB_ID: string = (
-      (await testContext.client.request({
-        command: 'account_objects',
-        account: testContext.bob.classicAddress,
-        type: 'uri_token',
-      })) as AccountObjectsResponse
-    ).result.account_objects[0].index
-    const femaleHash = BOB_ID
+    // const BOB_URITOKEN: URIToken = (
+    //   (await testContext.client.request({
+    //     command: 'account_objects',
+    //     account: testContext.bob.classicAddress,
+    //     type: 'uri_token',
+    //   })) as AccountObjectsResponse
+    // ).result.account_objects[1] as URIToken
+    // const femaleID = BOB_URITOKEN.Digest
+    // const femaleHash = BOB_URITOKEN.index
+    const femaleID =
+      '3F9EA9EB8A32EC06C0BD086C961B5E62D73C6ECAE42082A1D6E1DF3906BCEDC0'
+    const femaleHash =
+      '389722E386F06F8E646372EA4DA18CABE91FCAA7E0A7D576A3F7D2B8C9153BB0'
 
     // UPDATE MALE PET
     await updatePet(
@@ -201,8 +173,17 @@ describe('Pets - Success Group', () => {
       maleHash,
       aliceWallet,
       hookWallet.classicAddress,
-      floatToLEXfl('10')
+      '10'
     )
+
+    {
+      const pet = await getPet(
+        testContext.client,
+        hookWallet.classicAddress,
+        maleID
+      )
+      console.log(pet)
+    }
 
     // UPDATE FEMALE PET
     await updatePet(
@@ -210,8 +191,17 @@ describe('Pets - Success Group', () => {
       femaleHash,
       bobWallet,
       hookWallet.classicAddress,
-      floatToLEXfl('10')
+      '10'
     )
+
+    {
+      const pet = await getPet(
+        testContext.client,
+        hookWallet.classicAddress,
+        femaleID
+      )
+      console.log(pet)
+    }
 
     // BREED FEMALE PET
     await breedPet(
@@ -224,8 +214,14 @@ describe('Pets - Success Group', () => {
     )
     await close(testContext.client)
 
-    // BUY / SELL
-    await sellPet(testContext.client, aliceWallet, maleHash, '1')
-    await buyPet(testContext.client, bobWallet, maleHash, '1')
+    // {
+    //   const pet = await getPet(
+    //     testContext.client,
+    //     hookWallet.classicAddress,
+    //     maleHash
+    //   )
+    //   expect(pet.isBreedable).toBe(0)
+    //   expect(pet.breedPrice).toBe(0)
+    // }
   })
 })

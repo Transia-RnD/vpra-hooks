@@ -84,23 +84,6 @@ describe('Pets - Success Group', () => {
   it('mint pet', async () => {
     const hookWallet = testContext.hook1
     const aliceWallet = testContext.alice
-    const mintVersion = 0
-    // const initalResponse = (await testContext.client.request({
-    //   command: 'account_objects',
-    //   account: testContext.alice.classicAddress,
-    //   type: 'uri_token',
-    // })) as AccountObjectsResponse
-
-    // if (initalResponse.result.account_objects.length === 0) {
-    //   await mintPet(
-    //     testContext,
-    //     aliceWallet,
-    //     100,
-    //     'Damascus',
-    //     hookWallet.classicAddress,
-    //     'pet_mint.c: Finished.'
-    //   )
-    // }
 
     await mintPet(
       testContext,
@@ -117,7 +100,7 @@ describe('Pets - Success Group', () => {
         account: testContext.alice.classicAddress,
         type: 'uri_token',
       })) as AccountObjectsResponse
-    ).result.account_objects[mintVersion] as URIToken
+    ).result.account_objects[5] as URIToken
 
     const maleHash = ALICE_URITOKEN.Digest
 
@@ -127,8 +110,42 @@ describe('Pets - Success Group', () => {
         hookWallet.classicAddress,
         maleHash
       )
-      expect(pet.isBreedable).toBe(0)
-      expect(pet.breedPrice).toBe(0)
+      console.log(pet)
+      // expect(pet.id).toEqual(0n)
+      expect(pet.name).toEqual('Damascus')
+      expect(pet.gender === 0 || pet.gender === 1).toBeTruthy()
+      expect(pet.age).toEqual(0)
+      expect(pet.breed >= 0 && pet.breed <= 3).toBeTruthy()
+      expect(pet.size >= 1 && pet.size <= 10).toBeTruthy()
+      expect(pet.body >= 1 && pet.body <= 10).toBeTruthy()
+      const speedOptions = [55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+      expect(speedOptions.includes(pet.speed)).toBeTruthy()
+      expect(pet.stamina >= 1 && pet.stamina <= 10).toBeTruthy()
+      expect(pet.temperament >= 1 && pet.temperament <= 10).toBeTruthy()
+      expect(pet.training >= 1 && pet.training <= 10).toBeTruthy()
+      expect(pet.health >= 1 && pet.health <= 10).toBeTruthy()
+      const lifespanOptions = [10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+      expect(lifespanOptions.includes(pet.lifespan)).toBeTruthy()
+      expect(pet.affinity >= 0 && pet.affinity <= 100).toBeTruthy()
+      expect(pet.morale).toEqual(0n)
+      expect(pet.isBreedable).toEqual(0)
+      expect(pet.breedPrice).toEqual(0)
+      expect(pet.tokenId).not.toBeNull()
+      expect(pet.wins).toEqual(0)
+      expect(pet.total).toEqual(0n)
+    }
+
+    try {
+      await mintPet(
+        testContext,
+        testContext.frank,
+        100,
+        'Arrogate 2x',
+        hookWallet.classicAddress,
+        'pet_mint.c: Finished.'
+      )
+    } catch (error) {
+      console.log(error)
     }
   })
 })
